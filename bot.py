@@ -12,12 +12,11 @@ MY_ID = 1048444028
 
 print(f"=== STARTUP === TOKEN set: {bool(TOKEN)}, WEBHOOK_URL: {WEBHOOK_URL}", flush=True)
 
-bot = telebot.TeleBot(TOKEN)
+bot = telebot.TeleBot(TOKEN, threaded=False)
 app = Flask(__name__)
 
 
-@bot.message_handler(commands=['start'])
-def welcome(message):
+def handle_start(message):
     print(f"=== /start received from {message.from_user.id} ===", flush=True)
     try:
         name = message.from_user.first_name
@@ -34,20 +33,11 @@ def welcome(message):
         )
         print("=== /start: message sent OK ===", flush=True)
     except Exception as e:
-        print(f"=== ERROR in /start handler: {e} ===", flush=True)
+        print(f"=== ERROR in handle_start: {e} ===", flush=True)
         traceback.print_exc(file=sys.stdout)
 
 
-@bot.message_handler(func=lambda message: True)
-def catch_all(message):
-    print(f"=== CATCH-ALL: received message type={message.content_type}, text={getattr(message, 'text', None)} ===", flush=True)
-
-
-print(f"=== Registered message handlers: {len(bot.message_handlers)} ===", flush=True)
-
-
-@bot.message_handler(content_types=['web_app_data'])
-def get_order(message):
+def handle_web_app_data(message):
     print("ПРИШЁЛ ЗАКАЗ:", message.web_app_data.data, flush=True)
     try:
         data = json.loads(message.web_app_data.data)
@@ -64,8 +54,26 @@ def get_order(message):
         bot.send_message(MY_ID, order_text)
         bot.send_message(message.chat.id, "Спасибо за заказ! 🌿 Мы скоро свяжемся с вами для подтверждения.")
     except Exception as e:
-        print(f"=== ERROR in get_order handler: {e} ===", flush=True)
+        print(f"=== ERROR in handle_web_app_data: {e} ===", flush=True)
         traceback.print_exc(file=sys.stdout)
+
+
+def dispatch_update(update):
+    """Manually route the update to the right handler, bypassing process_new_updates."""
+    print(f"=== DISPATCH: update_id={update.update_id} ===", flush=True)
+    message = update.message
+    if message is None:
+        print("=== DISPATCH: no message in update, skipping ===", flush=True)
+        return
+
+    print(f"=== DISPATCH: content_type={message.content_type}, text={getattr(message, 'text', None)} ===", flush=True)
+
+    if message.content_type == 'text' and message.text and message.text.startswith('/start'):
+        handle_start(message)
+    elif message.content_type == 'web_app_data':
+        handle_web_app_data(message)
+    else:
+        print(f"=== DISPATCH: unhandled message, content_type={message.content_type} ===", flush=True)
 
 
 @app.route('/webhook', methods=['POST'])
@@ -74,9 +82,7 @@ def receive_update():
         json_string = request.get_data().decode('utf-8')
         print(f"=== WEBHOOK RAW DATA: {json_string[:500]} ===", flush=True)
         update = telebot.types.Update.de_json(json_string)
-        print(f"=== PARSED UPDATE OK, calling process_new_updates ===", flush=True)
-        bot.process_new_updates([update])
-        print(f"=== process_new_updates RETURNED ===", flush=True)
+        dispatch_update(update)
     except Exception as e:
         print(f"=== ERROR in /webhook route: {e} ===", flush=True)
         traceback.print_exc(file=sys.stdout)
