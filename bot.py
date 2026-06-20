@@ -38,6 +38,14 @@ def welcome(message):
         traceback.print_exc(file=sys.stdout)
 
 
+@bot.message_handler(func=lambda message: True)
+def catch_all(message):
+    print(f"=== CATCH-ALL: received message type={message.content_type}, text={getattr(message, 'text', None)} ===", flush=True)
+
+
+print(f"=== Registered message handlers: {len(bot.message_handlers)} ===", flush=True)
+
+
 @bot.message_handler(content_types=['web_app_data'])
 def get_order(message):
     print("ПРИШЁЛ ЗАКАЗ:", message.web_app_data.data, flush=True)
