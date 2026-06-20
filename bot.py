@@ -66,7 +66,9 @@ def receive_update():
         json_string = request.get_data().decode('utf-8')
         print(f"=== WEBHOOK RAW DATA: {json_string[:500]} ===", flush=True)
         update = telebot.types.Update.de_json(json_string)
+        print(f"=== PARSED UPDATE OK, calling process_new_updates ===", flush=True)
         bot.process_new_updates([update])
+        print(f"=== process_new_updates RETURNED ===", flush=True)
     except Exception as e:
         print(f"=== ERROR in /webhook route: {e} ===", flush=True)
         traceback.print_exc(file=sys.stdout)
