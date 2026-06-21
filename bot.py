@@ -20,8 +20,8 @@ def handle_start(message):
     print(f"=== /start received from {message.from_user.id} ===", flush=True)
     try:
         name = message.from_user.first_name
-        markup = types.InlineKeyboardMarkup()
-        shop_button = types.InlineKeyboardButton(
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+        shop_button = types.KeyboardButton(
             text="🛒 Открыть магазин Fresh Zil",
             web_app=types.WebAppInfo(url="https://eclectic-jelly-b961c0.netlify.app")
         )
