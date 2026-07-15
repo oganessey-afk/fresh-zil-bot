@@ -52,7 +52,7 @@ def handle_web_app_data(message):
             order_text += f"• {item['name']} — {item['price']} ₽\n"
         order_text += f"\nИтого: {data['total']} ₽"
         bot.send_message(MY_ID, order_text)
-        bot.send_message(message.chat.id, "Спасибо за заказ! 🌿 Мы скоро свяжемся с вами для подтверждения.")
+        bot.send_message(message.chat.id, f"Спасибо за заказ, {name}! 🌿")
     except Exception as e:
         print(f"=== ERROR in handle_web_app_data: {e} ===", flush=True)
         traceback.print_exc(file=sys.stdout)
