@@ -44,7 +44,7 @@ def supabase_get_customer(telegram_id):
         return None
 
 
-def supabase_save_customer(telegram_id, first_name, phone, apartment):
+def supabase_save_customer(telegram_id, first_name, phone, apartment, address=''):
     """Сохранить или обновить данные клиента в Supabase"""
     try:
         headers = {
@@ -57,7 +57,8 @@ def supabase_save_customer(telegram_id, first_name, phone, apartment):
             "telegram_id": telegram_id,
             "first_name": first_name,
             "phone": phone,
-            "apartment": apartment
+            "apartment": apartment,
+            "address": address
         }
         res = requests.post(
             f"{SUPABASE_URL}/rest/v1/customers",
@@ -111,10 +112,11 @@ def handle_web_app_data(message):
         customer_name = customer_data.get('name') or name
         phone = customer_data.get('phone', 'не указан')
         apartment = customer_data.get('apartment', 'не указана')
+        address = customer_data.get('address', 'не указан')
 
         # Сохраняем данные в Supabase
         if customer_data:
-            supabase_save_customer(telegram_id, customer_name, phone, apartment)
+            supabase_save_customer(telegram_id, customer_name, phone, apartment, address)
 
         # Формируем текст заказа
         order_text = "🛒 НОВЫЙ ЗАКАЗ!\n\n"
@@ -123,6 +125,7 @@ def handle_web_app_data(message):
             order_text += f" (@{username})"
         order_text += f"\n📱 Телефон: {phone}"
         order_text += f"\n🏠 Квартира: {apartment}"
+        order_text += f"\n📍 Адрес: {address}"
         order_text += "\n\n"
         for item in data['items']:
             qty = item.get('qty', 1)
