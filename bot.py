@@ -106,23 +106,34 @@ def handle_web_app_data(message):
         name = message.from_user.first_name
         username = message.from_user.username
 
-        # Проверяем, есть ли клиент в базе
-        customer = supabase_get_customer(telegram_id)
+        # Читаем данные клиента из заказа (заполнены в форме магазина)
+        customer_data = data.get('customer', {})
+        customer_name = customer_data.get('name') or name
+        phone = customer_data.get('phone', 'не указан')
+        apartment = customer_data.get('apartment', 'не указана')
 
-        if customer:
-            # Клиент уже есть — сразу обрабатываем заказ
-            process_order(message, data, customer)
-        else:
-            # Новый клиент — просим ввести данные
-            user_states[telegram_id] = {
-                'state': 'waiting_phone',
-                'order_data': data,
-                'name': name
-            }
-            bot.send_message(
-                message.chat.id,
-                f"Спасибо за заказ, {name}! 🌿\n\nДля доставки нам нужны ваши данные (один раз).\n\n📱 Введите ваш номер телефона:"
-            )
+        # Сохраняем данные в Supabase
+        if customer_data:
+            supabase_save_customer(telegram_id, customer_name, phone, apartment)
+
+        # Формируем текст заказа
+        order_text = "🛒 НОВЫЙ ЗАКАЗ!\n\n"
+        order_text += f"От: {customer_name}"
+        if username:
+            order_text += f" (@{username})"
+        order_text += f"\n📱 Телефон: {phone}"
+        order_text += f"\n🏠 Квартира: {apartment}"
+        order_text += "\n\n"
+        for item in data['items']:
+            qty = item.get('qty', 1)
+            order_text += f"• {item['name']} × {qty} — {item['price'] * qty} ₽\n"
+        order_text += f"\nИтого: {data['total']} ₽"
+
+        bot.send_message(MY_ID, order_text)
+        bot.send_message(
+            message.chat.id,
+            f"Спасибо за заказ, {customer_name}! 🌿\nМы всё получили и скоро приступим к сборке."
+        )
 
     except Exception as e:
         print(f"=== ERROR in handle_web_app_data: {e} ===", flush=True)
