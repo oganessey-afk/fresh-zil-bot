@@ -111,7 +111,21 @@ def handle_web_app_data(message):
         customer = supabase_get_customer(telegram_id)
 
         if customer:
-            # Клиент уже есть — сразу обрабатываем заказ
+            # Клиент уже есть — проверяем, не прислал ли он новые данные из формы
+            new_data = data.get('customer') or {}
+            updated_address = new_data.get('address') or customer.get('address', '')
+            updated_phone = new_data.get('phone') or customer.get('phone', '')
+            updated_apartment = new_data.get('apartment') or customer.get('apartment', '')
+            updated_name = customer.get('first_name') or name
+
+            supabase_save_customer(telegram_id, updated_name, updated_phone, updated_apartment, updated_address)
+
+            customer = {
+                'first_name': updated_name,
+                'phone': updated_phone,
+                'apartment': updated_apartment,
+                'address': updated_address
+            }
             process_order(message, data, customer)
         else:
             # Новый клиент — просим ввести данные
