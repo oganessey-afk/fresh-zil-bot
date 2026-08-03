@@ -1,4 +1,5 @@
 import telebot
+import time
 from telebot import types
 import json
 import os
@@ -77,7 +78,7 @@ def send_shop_button(chat_id, name):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     shop_button = types.KeyboardButton(
         text="🛒 Открыть магазин Fresh Zil",
-        web_app=types.WebAppInfo(url="https://eclectic-jelly-b961c0.netlify.app")
+        web_app=types.WebAppInfo(url="https://eclectic-jelly-b961c0.netlify.app?nocache=" + str(int(time.time())))
     )
     markup.add(shop_button)
     bot.send_message(
