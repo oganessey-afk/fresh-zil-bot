@@ -190,15 +190,14 @@ def handle_text(message):
 
         # Убираем состояние
         del user_states[telegram_id]
-
         # Обрабатываем заказ
-       customer = {
-                'first_name': name,
-                'phone': phone,
-                'apartment': apartment,
-                'address': address
-            }
-        process_order(message, order_data, customer)
+        customer = {
+        'first_name': name,
+        'phone': phone,
+        'apartment': apartment,
+        'address': address
+         }
+         process_order(message, order_data, customer)
 
 
 def dispatch_update(update):
