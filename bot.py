@@ -196,8 +196,8 @@ def handle_text(message):
         'phone': phone,
         'apartment': apartment,
         'address': address
-         }
-         process_order(message, order_data, customer)
+        }
+        process_order(message, order_data, customer)
 
 
 def dispatch_update(update):
